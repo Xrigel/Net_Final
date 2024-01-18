@@ -1,0 +1,47 @@
+[HttpPost("updatePriceForInsuranceProduct")]
+    public IActionResult UpdatePriceForInsuranceProduct([FromBody] int insuranceProductId)
+    {
+        // Validate the input if necessary...
+
+        // Retrieve the InsuranceProduct based on its ID
+        var insuranceProduct = _dbContext.InsuranceProducts
+            .Include(ip => ip.Category)
+            .Include(ip => ip.Type)
+            .Include(ip => ip.Package)
+            .FirstOrDefault(ip => ip.ProductId == insuranceProductId);
+
+        if (insuranceProduct != null)
+        {
+            // Retrieve the Price based on Category, Type, and Package
+            var price = _dbContext.Prices
+                .FirstOrDefault(p =>
+                    p.CategoryId == insuranceProduct.CategoryId &&
+                    p.TypeId == insuranceProduct.TypeId &&
+                    p.PackageId == insuranceProduct.PackageId);
+
+            if (price != null)
+            {
+                // Assign the Price to the InsuranceProduct
+                insuranceProduct.ProductPrice = price;
+
+                // Save changes to update the InsuranceProduct with the new Price
+                _dbContext.SaveChanges();
+
+                return Ok(new { Message = "Price updated successfully." });
+            }
+            else
+            {
+                // Handle the case when no matching Price is found
+                return NotFound("No matching Price found.");
+            }
+        }
+        else
+        {
+            // Handle the case when no matching InsuranceProduct is found
+            return NotFound("No matching InsuranceProduct found.");
+        }
+    }
+}
+
+Increase/decrease the limit of purchased insurance product (package
+change);
